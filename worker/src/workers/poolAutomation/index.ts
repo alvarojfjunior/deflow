@@ -4,6 +4,7 @@ import { WalletDoc } from "../../types/database";
 import { getTokenBalances } from "../../lib/connectors/blockchain";
 import { parentPort, workerData } from "worker_threads";
 import { logMessage } from "../utils/logs";
+import { getPools } from "../../lib/connectors/dex";
 
 const automation = workerData;
 
@@ -24,7 +25,10 @@ parentPort?.on("message", async (msg) => {
 
     const balance = await getTokenBalances(wallet, "solana");
 
+    const pools = await getPools("orca");
+
     logMessage(balance);
+    logMessage(pools);
     
     const elapsed = Date.now() - start;
     logMessage(`${automation.name} concluído em ${elapsed}ms`);

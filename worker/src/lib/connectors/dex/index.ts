@@ -8,7 +8,7 @@ type SupportedBlockchain = keyof typeof connectors;
 
 export const getPools = async (dex: SupportedBlockchain) => {
   if (dex == "orca") {
-    return connectors[dex].getPools(dex);
+    return connectors[dex].getPools();
   } else {
     throw new Error("Invalid dex");
   }
