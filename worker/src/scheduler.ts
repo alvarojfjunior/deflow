@@ -6,7 +6,10 @@ import { Worker } from "worker_threads";
 import path from "path";
 
 const strategyRunnerMap = {
-  poolAutomation: path.resolve(__dirname, "../dist/workers/poolAutomation/index.js"),
+  poolAutomation: path.resolve(
+    __dirname,
+    "../dist/workers/poolAutomation/index.js"
+  ),
 };
 
 async function main() {
@@ -21,18 +24,24 @@ async function main() {
 
   while (true) {
     try {
-      const activeAutomations = await automations.find({ status: "active" }).toArray();
+      const activeAutomations = await automations
+        .find({ status: "active" })
+        .toArray();
       const now = Date.now();
 
       // 1️⃣ Encerra workers que não estão mais ativos
       for (const [id, worker] of workers) {
-        const stillActive = activeAutomations.some(a => a._id.toString() === id);
+        const stillActive = activeAutomations.some(
+          (a) => a._id.toString() === id
+        );
         if (!stillActive) {
           console.log(`🛑 Encerrando worker desativado: ${id}`);
           worker.terminate();
           workers.delete(id);
         }
       }
+
+      let countRunned = 0;
 
       // 2️⃣ Processa automations ativos
       for (const automation of activeAutomations) {
@@ -53,6 +62,8 @@ async function main() {
         // Se ainda não passou o intervalo, apenas ignora
         if (diff < interval) continue;
 
+        countRunned++;
+
         // Cria o worker se ainda não existir
         if (!workers.has(id)) {
           console.log(`🚀 Criando worker para ${automation.name}`);
@@ -62,7 +73,8 @@ async function main() {
           workers.set(id, worker);
 
           worker.on("message", (msg) => {
-            console.log(`[📨 ${automation.name}]`, msg);
+            if (msg?.data?.type === "log" && msg?.data?.message)
+              console.log(`[📨 ${automation.name}]`, msg.data.message);
           });
 
           worker.on("error", (err) => {
@@ -85,6 +97,7 @@ async function main() {
           { $set: { lastHeartbeatAt: new Date() } }
         );
       }
+      console.log(`✅ ${countRunned} automations runned`);
     } catch (err: any) {
       console.error("❌ Polling error:", err.message);
     }

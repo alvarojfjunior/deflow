@@ -3,45 +3,32 @@ import { connectDb } from "../../lib/db";
 import { WalletDoc } from "../../types/database";
 import { getBalance } from "../../lib/connectors/blockchain";
 import { parentPort, workerData } from "worker_threads";
-import { log } from "../utils/logs";
+import { logMessage } from "../utils/logs";
 
 const automation = workerData;
 
-console.log(`🏃 Worker iniciado: ${automation.name}`);
-
 parentPort?.on("message", async (msg) => {
+  if (!parentPort) {
+    throw new Error("parentPort not found");
+  }
   if (msg.type === "run") {
-    try {
-      console.log(`⚙️ Executando tarefa de ${automation.name}...`);
-      const start = Date.now();
-
-      const db = await connectDb();
-      const wallets = db.collection<WalletDoc>("wallets");
-      const wallet = await wallets.findOne({
-        userId: new ObjectId(automation.userId),
-      });
-      if (!wallet) {
-        throw new Error("Wallet not found");
-      }
-
-      const balance = await getBalance('solana', wallet);
-
-      parentPort?.postMessage({
-        type: "success",
-        data: balance,
-      });
-
-      const elapsed = Date.now() - start;
-      parentPort?.postMessage({
-        type: "success",
-        data: `${automation.name} concluído em ${elapsed}ms`,
-      });
-    } catch (err: any) {
-      parentPort?.postMessage({
-        type: "error",
-        data: err.message,
-      });
+    logMessage(parentPort, "just a test");
+    const start = Date.now();
+    const db = await connectDb();
+    const wallets = db.collection<WalletDoc>("wallets");
+    const wallet = await wallets.findOne({
+      _id: new ObjectId(String(automation.strategy.params.walletId)),
+    });
+    if (!wallet) {
+      throw new Error("Wallet not found");
     }
+
+    const balance = await getBalance("solana", wallet);
+
+    logMessage(parentPort, balance);
+    
+    const elapsed = Date.now() - start;
+    logMessage(parentPort, `${automation.name} concluído em ${elapsed}ms`);
   }
 });
 

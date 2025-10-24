@@ -1,5 +1,8 @@
 import { MessagePort } from "worker_threads";
 
-export function log(port: MessagePort, message: string) {
-  port.postMessage({ type: "log", data: message });
+export function logMessage(port: MessagePort, data: any) {
+  port.postMessage({ type: "message", data: { type: "log", message: data } });
 }
+
+
+export default { logMessage };
