@@ -8,8 +8,8 @@ const connectors = {
 type SupportedBlockchain = keyof typeof connectors;
 
 export const getBalance = async (
-  blockchain: SupportedBlockchain,
-  wallet: WalletDoc
+  wallet: WalletDoc,
+  blockchain: SupportedBlockchain
 ) => {
   return connectors[blockchain].getBalance(wallet);
 };
@@ -19,6 +19,14 @@ export const getTokenBalance = async (
   blockchain: SupportedBlockchain
 ) => {
   return connectors[blockchain].getTokenBalance(address);
+};
+
+// Novo: lista todos os tokens da carteira
+export const getTokenBalances = async (
+  wallet: WalletDoc,
+  blockchain: SupportedBlockchain
+) => {
+  return connectors[blockchain].getTokenBalances(wallet);
 };
 
 export const getPublicKey = async (

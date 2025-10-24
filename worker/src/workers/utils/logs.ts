@@ -1,8 +1,13 @@
-import { MessagePort } from "worker_threads";
+import { parentPort } from "worker_threads";
 
-export function logMessage(port: MessagePort, data: any) {
-  port.postMessage({ type: "message", data: { type: "log", message: data } });
+export function logMessage(data: any) {
+  if (!parentPort) {
+    throw new Error("parentPort not found");
+  }
+  parentPort.postMessage({
+    type: "message",
+    data: { type: "log", message: data },
+  });
 }
-
 
 export default { logMessage };
