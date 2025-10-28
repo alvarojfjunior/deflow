@@ -16,10 +16,8 @@ export default async (db: Db, automation: Automation) => {
       throw new Error("Wallet not found");
     }
 
-    const balance = await getTokenBalances(wallet, "solana");
-
-    const pools = await getPools("orca");
-
+    // const balance = await getTokenBalances(wallet, "solana");
+    // const pools = await getPools("orca");
     // logMessage(balance);
     // logMessage(pools);
 
