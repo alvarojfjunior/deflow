@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { connectDb } from "./lib/db";
-import { Collection } from "mongodb";
+import { Collection, Db } from "mongodb";
 import { Automation } from "./types/automation";
 import { Worker } from "worker_threads";
 import path from "path";
@@ -12,8 +12,12 @@ const strategyRunnerMap = {
   ),
 };
 
+let db: Db;
+
 async function main() {
-  const db = await connectDb();
+  if (!db) {
+    db = await connectDb();
+  }
   const automations = db.collection("automations") as Collection<Automation>;
 
   const globalPolling = Number(process.env.POOLING_INTERVAL || 60_000);

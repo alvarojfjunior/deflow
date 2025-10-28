@@ -26,14 +26,6 @@ Ela permite ao usuário criar **loops personalizados** que monitoram, abrem e fe
 
 ---
 
-## 🧩 Arquitetura e Princípios de Design
-
-### 🔹 Arquitetura Desacoplada
-Cada estratégia roda isoladamente com contratos bem definidos:
-- `IStrategyLoop` — controla a lógica de execução e repetição da estratégia;
-- `IBlockchainConnector` — gerencia carteira, saldos, preços e interações on-chain;
-- `IDexConnector` — lida com dados das pools, operações de liquidez e taxas.
-
 ### 🔹 Modularidade Baseada em Conectores
 - **Conectores de Blockchain:** responsáveis por carteiras, saldos e interações on-chain.  
 - **Conectores de DEX:** responsáveis por dados de pools, taxas e operações de entrada e saída.  
