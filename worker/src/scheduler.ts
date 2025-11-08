@@ -18,7 +18,7 @@ async function main() {
 
   while (true) {
     try {
-      console.log(`🧠 Scheduler running...`);
+      console.log(`🧠 Scheduler is running...`);
       const activeAutomations = await automations
         .find({ status: "active" })
         .toArray();
@@ -40,10 +40,9 @@ async function main() {
           "run-strategy",
           { automation },
           {
-            jobId: automation._id.toString(),
-            removeOnComplete: true,
-            attempts: 3,
-            backoff: { type: "exponential", delay: 2000 },
+            attempts: 1,
+            removeOnComplete: 100, // mantém só os últimos 100 jobs completos
+            removeOnFail: 500, // mantém os últimos 500 falhos
           }
         );
         console.log(`🧠 Scheduled job for automation ${automation.name}`);

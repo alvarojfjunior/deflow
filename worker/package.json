@@ -4,7 +4,7 @@
   "main": "scheduler.js",
   "scripts": {
     "dev:app": "ts-node-dev --respawn --transpile-only src/scheduler.ts",
-    "dev:worker": "ts-node-dev --respawn --transpile-only src/workers/poolAutomation/strategy.ts",
+    "dev:worker": "ts-node-dev --respawn --transpile-only src/workers/poolAutomation/index.ts",
     "dev:watch": "npm-run-all -p dev:app dev:worker"
   },
   "keywords": [],
