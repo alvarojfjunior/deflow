@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
+# Install dependencies (dev deps included for watch)
 RUN npm install
 
 # Copy the rest of the application
@@ -15,10 +15,10 @@ COPY . .
 
 # Set environment variables
 ENV NODE_ENV=development
-ENV NEXT_TELEMETRY_DISABLED=1
+ENV CHOKIDAR_USEPOLLING=1
 
 # Expose port 3000
 EXPOSE 3000
 
-# Run in development mode
-CMD ["npm", "run", "dev"]
+# Run in development mode with watch
+CMD ["npm", "run", "dev:watch"]

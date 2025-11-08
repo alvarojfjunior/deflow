@@ -6,7 +6,10 @@
     "dev": "npm run build && npm run start",
     "build:workers": "tsc -p tsconfig.workers.json",
     "build": "tsc",
-    "start": "node dist/scheduler.js"
+    "start": "node dist/scheduler.js",
+    "build:watch": "tsc -w",
+    "start:watch": "nodemon -L dist/scheduler.js",
+    "dev:watch": "npm-run-all -p build:watch start:watch"
   },
   "keywords": [],
   "author": "",
@@ -28,6 +31,7 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
-    "npm-run-all": "^4.1.5"
+    "npm-run-all": "^4.1.5",
+    "nodemon": "^3.1.0"
   }
 }

@@ -22,6 +22,11 @@ services:
       - ./worker/.env
     depends_on:
       - mongo
+      - redis
+    command: npm run dev:watch
+    volumes:
+      - ./worker:/usr/src/app
+      - worker_node_modules:/usr/src/app/node_modules
 
   mongo:
     image: mongo:6
@@ -33,5 +38,12 @@ services:
     environment:
       - MONGO_INITDB_DATABASE=deflow
 
+  redis:
+    image: redis:7
+    container_name: deflow-redis
+    ports:
+      - "6379:6379"
+
 volumes:
   mongo_data:
+  worker_node_modules:

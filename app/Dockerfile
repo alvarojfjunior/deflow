@@ -15,7 +15,6 @@ COPY . .
 
 # Set environment variables
 ENV NODE_ENV=development
-ENV NEXT_TELEMETRY_DISABLED=1
 
 # Expose port 3000
 EXPOSE 3000
