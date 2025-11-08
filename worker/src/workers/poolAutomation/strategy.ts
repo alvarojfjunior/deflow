@@ -1,25 +1,35 @@
 import { Db, ObjectId } from "mongodb";
 import { WalletDoc } from "../../types/database";
-import { getTokenBalances } from "../../lib/connectors/blockchain";
 import { logMessage } from "../utils/logs";
 import { getPools } from "../../lib/connectors/dex";
-import { Automation } from "../../types/automation";
+import { Automation, PoolAutomationParams } from "../../types/automation";
 
 export default async (db: Db, automation: Automation) => {
   try {
     const start = Date.now();
-    const wallets = db.collection<WalletDoc>("wallets");
-    const wallet = await wallets.findOne({
-      _id: new ObjectId(String(automation.strategy.params.walletId)),
-    });
-    if (!wallet) {
-      throw new Error("Wallet not found");
-    }
+    
+    // const wallets = db.collection<WalletDoc>("wallets");
+    // const wallet = await wallets.findOne({
+    //   _id: new ObjectId(String(automation.strategy.params.walletId)),
+    // });
+    // if (!wallet) {
+    //   throw new Error("Wallet not found");
+    // }
+     const pools = await getPools("orca");
+     if (!pools) {
+      throw new Error("Pools not found");
+     }
 
-    // const balance = await getTokenBalances(wallet, "solana");
-    // const pools = await getPools("orca");
-    // logMessage(balance);
+     logMessage(pools[0].yieldOverTvl24h)
+
+    //  if (automation.strategy.params.allocationMode === "PR/TVL") {
+    //   pools.sort((a, b) => b.priceRatio - a.priceRatio);
+    //  }
+     
     // logMessage(pools);
+    // const balance = await getTokenBalances(wallet, "solana");
+    // logMessage(balance);
+
 
     const elapsed = Date.now() - start;
     logMessage(`${automation.name} concluído em ${elapsed}ms`);

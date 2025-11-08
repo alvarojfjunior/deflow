@@ -6,6 +6,7 @@ import { FormSelect } from '@/components/forms/form-select';
 import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { WalletService } from '@/features/wallet/api/wallet-service';
+import { FormInput } from '@/components/forms/form-input';
 
 export default function PoolAutomationForm() {
   const { control } = useFormContext();
@@ -42,6 +43,74 @@ export default function PoolAutomationForm() {
         required
         placeholder='Select wallet'
         options={walletOptions}
+      />
+
+      {/* Allocation Mode */}
+      <FormSelect
+        control={control}
+        name={'strategy.params.allocationMode'}
+        label='Allocation mode'
+        required
+        placeholder='Select allocation mode'
+        options={[{ label: 'APR/TVL', value: 'APR/TVL' }]}
+      />
+
+      {/* Max Active Pools */}
+      <FormInput
+        control={control}
+        name={'strategy.params.maxActivePools'}
+        label='Max active pools'
+        type='number'
+        min={1}
+        step={1}
+        required
+      />
+
+      {/* IL Tolerance (%) */}
+      <FormInput
+        control={control}
+        name={'strategy.params.impermanentLossTolerancePer'}
+        label='IL tolerance (%)'
+        type='number'
+        min={0}
+        max={100}
+        step={1}
+        required
+      />
+
+      {/* Exit on TVL drop (%) */}
+      <FormInput
+        control={control}
+        name={'strategy.params.exitOnTVLDropPer'}
+        label='Exit on TVL drop (%)'
+        type='number'
+        min={0}
+        max={100}
+        step={1}
+        required
+      />
+
+      {/* Exit on APR drop (%) */}
+      <FormInput
+        control={control}
+        name={'strategy.params.exitOnAPRDropPer'}
+        label='Exit on APR drop (%)'
+        type='number'
+        min={0}
+        max={100}
+        step={1}
+        required
+      />
+
+      {/* Max time out of range */}
+      <FormInput
+        control={control}
+        name={'strategy.params.maxTimeOutOfRange'}
+        label='Max time out of range (min)'
+        type='number'
+        min={0}
+        step={1}
+        required
       />
     </div>
   );

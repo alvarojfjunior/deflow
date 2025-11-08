@@ -8,6 +8,12 @@ export type StrategyName = 'poolAutomation';
 export interface PoolAutomationParams {
   blockchain: BlockchainNetwork.SOLANA;
   walletId: string; // Wallet ObjectId as string
+  allocationMode: 'APR/TVL';
+  maxActivePools: number;
+  impermanentLossTolerancePer: number;
+  exitOnTVLDropPer: number;
+  exitOnAPRDropPer: number;
+  maxTimeOutOfRange: number;
 }
 
 export interface StrategyDTO {

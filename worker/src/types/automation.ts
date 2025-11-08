@@ -1,12 +1,22 @@
+export type PoolAutomationParams = {
+  blockchain: "solana";
+  walletId: string;
+  allocationMode?: "APR" | "TVL" | "APR/TVL" | string;
+  maxActivePools?: number;
+  impermanentLossTolerancePer?: number;
+  stopWinPer?: number;
+  exitOnTVLDropPer?: number;
+  exitOnAPRDropPer?: number;
+  maxTimeOutOfRange?: number;
+};
+
+
 export type Automation = {
   _id: string;
   userId: string;
   strategy: {
-    name: "poolAutomation" | "dcaAutomation" | string; // pode expandir com outras estratégias
-    params: {
-      blockchain: "solana"; // opcionalmente limitar blockchains
-      walletId: string;
-    };
+    name: "poolAutomation";
+    params: PoolAutomationParams;
   };
   name: string;
   description: string;

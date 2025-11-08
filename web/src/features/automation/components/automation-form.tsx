@@ -20,7 +20,13 @@ import { Separator } from '@/components/ui/separator';
 
 const poolParamsSchema = z.object({
   blockchain: z.enum(['solana']),
-  walletId: z.string().min(1, { message: 'Wallet is required' })
+  walletId: z.string().min(1, { message: 'Wallet is required' }),
+  allocationMode: z.enum(['APR/TVL']),
+  maxActivePools: z.number().int().min(1, { message: 'Must be at least 1' }),
+  impermanentLossTolerancePer: z.number().min(0).max(100),
+  exitOnTVLDropPer: z.number().min(0).max(100),
+  exitOnAPRDropPer: z.number().min(0).max(100),
+  maxTimeOutOfRange: z.number().int().min(0)
 });
 
 const formSchema = z.object({
@@ -48,7 +54,14 @@ export default function AutomationForm({
     strategy: {
       params: {
         blockchain: (initialData?.strategy?.params?.blockchain as 'solana') || 'solana',
-        walletId: (initialData?.strategy?.params?.walletId as string) || ''
+        walletId: (initialData?.strategy?.params?.walletId as string) || '',
+        allocationMode: (initialData?.strategy?.params?.allocationMode as 'APR/TVL') || 'APR/TVL',
+        maxActivePools: (initialData?.strategy?.params?.maxActivePools as number) ?? 2,
+        impermanentLossTolerancePer:
+          (initialData?.strategy?.params?.impermanentLossTolerancePer as number) ?? 2,
+        exitOnTVLDropPer: (initialData?.strategy?.params?.exitOnTVLDropPer as number) ?? 20,
+        exitOnAPRDropPer: (initialData?.strategy?.params?.exitOnAPRDropPer as number) ?? 5,
+        maxTimeOutOfRange: (initialData?.strategy?.params?.maxTimeOutOfRange as number) ?? 1000
       }
     }
   };
@@ -65,7 +78,13 @@ export default function AutomationForm({
           name: values.strategyName,
           params: {
             blockchain: BlockchainNetwork.SOLANA,
-            walletId: values.strategy.params.walletId
+            walletId: values.strategy.params.walletId,
+            allocationMode: values.strategy.params.allocationMode,
+            maxActivePools: values.strategy.params.maxActivePools,
+            impermanentLossTolerancePer: values.strategy.params.impermanentLossTolerancePer,
+            exitOnTVLDropPer: values.strategy.params.exitOnTVLDropPer,
+            exitOnAPRDropPer: values.strategy.params.exitOnAPRDropPer,
+            maxTimeOutOfRange: values.strategy.params.maxTimeOutOfRange
           }
         }
       };
