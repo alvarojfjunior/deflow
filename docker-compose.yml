@@ -8,8 +8,13 @@ services:
     container_name: app
     env_file:
       - ./app/.env
+    environment:
+      - CHOKIDAR_USEPOLLING=1
     ports:
       - "3000:3000"
+    volumes:
+      - ./app:/usr/src/app
+      - app_node_modules:/usr/src/app/node_modules
     depends_on:
       - mongo
 
@@ -40,3 +45,4 @@ services:
 volumes:
   mongo_data:
   worker_node_modules:
+  app_node_modules:
