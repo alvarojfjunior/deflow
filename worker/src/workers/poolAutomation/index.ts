@@ -1,22 +1,22 @@
-import { parentPort, workerData } from "worker_threads";
+import { Worker } from "bullmq";
+import { connection } from "../../queue";
 import strategy from "./strategy";
-import { Db } from "mongodb";
-import { connectDb } from "../../lib/db";
-import { logMessage } from "../utils/logs";
 
-const automation = workerData;
-
-let db: Db;
-
-parentPort?.on("message", async (msg) => {
-  if (!parentPort || !automation || !msg) {
-    throw new Error("Worker not initialized");
-  }
-  if (msg.type === "run") {
-    if (!db) {
-      db = await connectDb();
-      logMessage(`Connected to database`);
-    }
+const worker = new Worker(
+  "run-strategy",
+  async (job) => {
+    console.log(`Processing job ${job.id}:`, job.data);
+    const { db, automation } = job.data;
     await strategy(db, automation);
-  }
+    console.log("Strategy runned!");
+  },
+  { connection }
+);
+
+worker.on("completed", (job) => {
+  console.log(`✅ Job ${job.id} completed`);
+});
+
+worker.on("failed", (job, err) => {
+  console.error(`❌ Job ${job?.id} failed: ${err.message}`);
 });

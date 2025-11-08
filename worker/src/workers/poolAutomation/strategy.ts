@@ -1,8 +1,7 @@
-import { Db, ObjectId } from "mongodb";
-import { WalletDoc } from "../../types/database";
+import { Db } from "mongodb";
 import { logMessage } from "../utils/logs";
 import { getPools } from "../../lib/connectors/dex";
-import { Automation, PoolAutomationParams } from "../../types/automation";
+import { Automation } from "../../types/automation";
 
 export default async (db: Db, automation: Automation) => {
   try {

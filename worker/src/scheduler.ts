@@ -4,6 +4,7 @@ import { Collection, Db } from "mongodb";
 import { Automation } from "./types/automation";
 import { Worker } from "worker_threads";
 import path from "path";
+import { myQueue } from "./queue";
 
 const strategyRunnerMap = {
   poolAutomation: path.resolve(
@@ -23,9 +24,6 @@ async function main() {
   const globalPolling = Number(process.env.POOLING_INTERVAL || 60_000);
   console.log(`🧠 Scheduler started (polling every ${globalPolling / 1000}s)`);
 
-  // 🧱 Controla workers ativos
-  const workers = new Map<string, Worker>();
-
   while (true) {
     try {
       const activeAutomations = await automations
@@ -33,23 +31,8 @@ async function main() {
         .toArray();
       const now = Date.now();
 
-      // 1️⃣ Encerra workers que não estão mais ativos
-      for (const [id, worker] of workers) {
-        const stillActive = activeAutomations.some(
-          (a) => a._id.toString() === id
-        );
-        if (!stillActive) {
-          console.log(`🛑 Encerrando worker desativado: ${id}`);
-          worker.terminate();
-          workers.delete(id);
-        }
-      }
-
-      let countRunned = 0;
-
       // 2️⃣ Processa automations ativos
       for (const automation of activeAutomations) {
-        const id = automation._id.toString();
         const filename =
           strategyRunnerMap[
             automation.strategy.name as keyof typeof strategyRunnerMap
@@ -66,34 +49,7 @@ async function main() {
         // Se ainda não passou o intervalo, apenas ignora
         if (diff < interval) continue;
 
-        countRunned++;
-
-        // Cria o worker se ainda não existir
-        if (!workers.has(id)) {
-          console.log(`🚀 Criando worker para ${automation.name}`);
-
-          const worker = new Worker(filename, { workerData: automation });
-
-          workers.set(id, worker);
-
-          worker.on("message", (msg) => {
-            if (msg?.data?.type === "log" && msg?.data?.message)
-              console.log(`[📨 ${automation.name}]`, msg.data.message);
-          });
-
-          worker.on("error", (err) => {
-            console.error(`❌ [${automation.name}] erro:`, err);
-          });
-
-          worker.on("exit", (code) => {
-            console.log(`💀 [${automation.name}] saiu com código ${code}`);
-            workers.delete(id);
-          });
-        }
-
-        // Envia mensagem de execução
-        const worker = workers.get(id)!;
-        worker.postMessage({ type: "run" });
+        await myQueue.add("run-strategy", { db, automation});
 
         // Atualiza o lastHeartbeatAt no banco
         await automations.updateOne(
@@ -101,7 +57,7 @@ async function main() {
           { $set: { lastHeartbeatAt: new Date() } }
         );
       }
-      console.log(`✅ ${countRunned} automations runned`);
+      console.log(`automations runned`);
     } catch (err: any) {
       console.error("❌ Polling error:", err.message);
     }
