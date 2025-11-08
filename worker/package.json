@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "scheduler.js",
   "scripts": {
-    "dev:app": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "dev:worker": "ts-node-dev --respawn --transpile-only src/scheduler.ts",
+    "dev:app": "ts-node-dev --respawn --transpile-only src/scheduler.ts",
+    "dev:worker": "ts-node-dev --respawn --transpile-only src/workers/poolAutomation/strategy.ts",
     "dev:watch": "npm-run-all -p dev:app dev:worker"
   },
   "keywords": [],
