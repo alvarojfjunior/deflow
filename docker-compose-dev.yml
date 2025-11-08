@@ -5,7 +5,7 @@ services:
     build:
       context: ./app
       dockerfile: Dockerfile.dev
-    container_name: app
+    container_name: deflow-app
     env_file:
       - ./app/.env
     environment:
@@ -22,7 +22,7 @@ services:
     build:
       context: ./worker
       dockerfile: Dockerfile.dev
-    container_name: worker
+    container_name: deflow-worker
     env_file:
       - ./worker/.env
     depends_on:

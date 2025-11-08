@@ -2,16 +2,7 @@ import "dotenv/config";
 import { connectDb } from "./lib/db";
 import { Collection, Db } from "mongodb";
 import { Automation } from "./types/automation";
-import { Worker } from "worker_threads";
-import path from "path";
 import { myQueue } from "./queue";
-
-const strategyRunnerMap = {
-  poolAutomation: path.resolve(
-    __dirname,
-    "../dist/workers/poolAutomation/index.js"
-  ),
-};
 
 let db: Db;
 
@@ -33,13 +24,6 @@ async function main() {
 
       // 2️⃣ Processa automations ativos
       for (const automation of activeAutomations) {
-        const filename =
-          strategyRunnerMap[
-            automation.strategy.name as keyof typeof strategyRunnerMap
-          ];
-
-        if (!filename) continue;
-
         const lastHeartbeat = automation.lastHeartbeatAt
           ? new Date(automation.lastHeartbeatAt).getTime()
           : 0;
@@ -49,7 +33,7 @@ async function main() {
         // Se ainda não passou o intervalo, apenas ignora
         if (diff < interval) continue;
 
-        await myQueue.add("run-strategy", { db, automation});
+        await myQueue.add("run-strategy", { db, automation });
 
         // Atualiza o lastHeartbeatAt no banco
         await automations.updateOne(
@@ -57,7 +41,6 @@ async function main() {
           { $set: { lastHeartbeatAt: new Date() } }
         );
       }
-      console.log(`automations runned`);
     } catch (err: any) {
       console.error("❌ Polling error:", err.message);
     }
