@@ -4,14 +4,11 @@ FROM node:20-alpine AS base
 # Set working directory
 WORKDIR /usr/src/app
 
-# Install pnpm globally
-RUN npm install -g pnpm
-
 # Copy package files
 COPY package*.json ./
 
 # Install dependencies
-RUN pnpm install
+RUN npm install
 
 # Copy the rest of the application
 COPY . .
@@ -24,4 +21,4 @@ ENV NEXT_TELEMETRY_DISABLED=1
 EXPOSE 3000
 
 # Run in development mode
-CMD ["pnpm", "dev"]
+CMD ["npm", "run", "dev"]

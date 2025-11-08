@@ -4,14 +4,11 @@ FROM node:20-alpine AS base
 # Set working directory
 WORKDIR /usr/src/app
 
-# Install pnpm globally
-RUN npm install -g pnpm
-
 # Copy package files
 COPY package*.json ./
 
 # Install dependencies
-RUN pnpm install
+RUN npm install
 
 # Copy the rest of the application
 COPY . .
