@@ -2,9 +2,12 @@ import { Db } from "mongodb";
 import { logMessage } from "../utils/logs";
 import { getPools } from "../../lib/connectors/dex";
 import { Automation } from "../../types/automation";
+import { connectDb } from "../../lib/db";
 
-export default async (db: Db, automation: Automation) => {
+export default async (automation: Automation) => {
   try {
+
+    const db = await connectDb();
     const start = Date.now();
     
     // const wallets = db.collection<WalletDoc>("wallets");

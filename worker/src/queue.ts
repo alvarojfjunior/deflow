@@ -10,4 +10,4 @@ export const connection = new Redis({
 connection.on("connect", () => console.log("✅ Connected to Redis!"));
 connection.on("error", (err) => console.error("❌ Redis error:", err));
 
-export const myQueue = new Queue("run-strategy", { connection });
+export const runStrategyQueue = new Queue("run-strategy", { connection });

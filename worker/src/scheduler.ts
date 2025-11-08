@@ -1,8 +1,9 @@
 import "dotenv/config";
+import "./server";
 import { connectDb } from "./lib/db";
 import { Collection, Db } from "mongodb";
 import { Automation } from "./types/automation";
-import { myQueue } from "./queue";
+import { runStrategyQueue } from "./queue";
 
 let db: Db;
 
@@ -17,6 +18,7 @@ async function main() {
 
   while (true) {
     try {
+      console.log(`🧠 Running...`);
       const activeAutomations = await automations
         .find({ status: "active" })
         .toArray();
@@ -33,7 +35,18 @@ async function main() {
         // Se ainda não passou o intervalo, apenas ignora
         if (diff < interval) continue;
 
-        await myQueue.add("run-strategy", { db, automation });
+        // Enfileira job serializável e com dedupe pelo automationId
+        await runStrategyQueue.add(
+          "run-strategy",
+          { automationId: automation._id.toString() },
+          {
+            jobId: automation._id.toString(),
+            removeOnComplete: true,
+            attempts: 3,
+            backoff: { type: "exponential", delay: 2000 },
+          }
+        );
+        console.log(`🧠 Scheduled job for automation ${automation.name}`);
 
         // Atualiza o lastHeartbeatAt no banco
         await automations.updateOne(
