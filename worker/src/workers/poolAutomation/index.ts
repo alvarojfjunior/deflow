@@ -7,7 +7,7 @@ const worker = new Worker(
   async (job) => {
     job.log(`Processing job ${job.id}`);
     const { automation } = job.data;
-    await strategy(automation);
+    await strategy(job, automation);
     job.log("Strategy runned!");
   },
   { connection }

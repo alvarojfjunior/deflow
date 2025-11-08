@@ -17,6 +17,6 @@ const app = express();
 
 app.use("/admin/queues", serverAdapter.getRouter());
 
-app.listen(3000, () => {
+app.listen(3333, () => {
   console.log("✅ Bull Board is running at http://localhost:3333/admin/queues");
 });

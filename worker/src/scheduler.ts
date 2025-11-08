@@ -18,7 +18,7 @@ async function main() {
 
   while (true) {
     try {
-      console.log(`🧠 Running...`);
+      console.log(`🧠 Scheduler running...`);
       const activeAutomations = await automations
         .find({ status: "active" })
         .toArray();
@@ -38,7 +38,7 @@ async function main() {
         // Enfileira job serializável e com dedupe pelo automationId
         await runStrategyQueue.add(
           "run-strategy",
-          { automationId: automation._id.toString() },
+          { automation },
           {
             jobId: automation._id.toString(),
             removeOnComplete: true,
