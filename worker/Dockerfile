@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies (dev deps included for watch)
+# Install dependencies (inclui devDependencies para watch)
 RUN npm install
 
 # Copy the rest of the application
