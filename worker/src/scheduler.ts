@@ -2,7 +2,7 @@ import "dotenv/config";
 import "./server";
 import { connectDb } from "./lib/db";
 import { Collection, Db } from "mongodb";
-import { Automation } from "./types/automation";
+import { AutomationDoc } from "./types/database";
 import { runStrategyQueue } from "./queue";
 
 let db: Db;
@@ -11,54 +11,75 @@ async function main() {
   if (!db) {
     db = await connectDb();
   }
-  const automations = db.collection("automations") as Collection<Automation>;
-
   const globalPolling = Number(process.env.POOLING_INTERVAL || 60_000);
   console.log(`🧠 Scheduler started (polling every ${globalPolling / 1000}s)`);
 
   while (true) {
     try {
-      console.log(`🧠 Scheduler is running...`);
+      const automations = db.collection(
+        "automations"
+      ) as Collection<AutomationDoc>;
       const activeAutomations = await automations
         .find({ status: "active" })
         .toArray();
-      const now = Date.now();
 
-      // 2️⃣ Processa automations ativos
-      for (const automation of activeAutomations) {
-        const lastHeartbeat = automation.lastHeartbeatAt
-          ? new Date(automation.lastHeartbeatAt).getTime()
-          : 0;
-        const interval = automation.interval || 60_000;
-        const diff = now - lastHeartbeat;
+      await removeAutomationsIfNeeded(activeAutomations);
 
-        // Se ainda não passou o intervalo, apenas ignora
-        if (diff < interval) continue;
+      await addAutomationsJobIfNotExists(activeAutomations);
 
-        // Enfileira job serializável e com dedupe pelo automationId
-        await runStrategyQueue.add(
-          "run-strategy",
-          { automation },
-          {
-            attempts: 1,
-            removeOnComplete: 100, // mantém só os últimos 100 jobs completos
-            removeOnFail: 500, // mantém os últimos 500 falhos
-          }
-        );
-        console.log(`🧠 Scheduled job for automation ${automation.name}`);
-
-        // Atualiza o lastHeartbeatAt no banco
-        await automations.updateOne(
-          { _id: automation._id },
-          { $set: { lastHeartbeatAt: new Date() } }
-        );
-      }
+      console.log(`Running ${activeAutomations.length} automations.`);
     } catch (err: any) {
       console.error("❌ Polling error:", err.message);
     }
-
     await new Promise((res) => setTimeout(res, globalPolling));
   }
 }
 
 main().catch((err) => console.error(err));
+
+async function addAutomationsJobIfNotExists(
+  activeAutomations: AutomationDoc[]
+) {
+  for (const automation of activeAutomations) {
+    const jobs = await runStrategyQueue.getJobSchedulers();
+    const job = jobs.find(
+      (j) => j.template?.data.automationId === automation._id.toString()
+    );
+
+    if (!job) {
+      await runStrategyQueue.add(
+        "run-strategy",
+        {
+          automationId: automation._id.toString(),
+        },
+        {
+          jobId: automation._id.toString(),
+          repeat: {
+            every: automation.interval || 60_000,
+          },
+          attempts: 1,
+          removeOnComplete: 50, // mantém só os últimos 100 jobs completos
+          removeOnFail: 50, // mantém os últimos 100 falhos
+        }
+      );
+      console.log(
+        `Job ${automation._id.toString()} added to repeatable queue.`
+      );
+    }
+  }
+}
+
+async function removeAutomationsIfNeeded(activeAutomations: AutomationDoc[]) {
+  const jobs = await runStrategyQueue.getJobSchedulers();
+
+  for (const job of jobs) {
+    if (
+      !activeAutomations.find(
+        (a) => a._id.toString() === job.template?.data.automationId
+      )
+    ) {
+      await runStrategyQueue.removeJobScheduler(job.key);
+      console.log(`Job ${job.template?.data.automationId} is stopped.`);
+    }
+  }
+}

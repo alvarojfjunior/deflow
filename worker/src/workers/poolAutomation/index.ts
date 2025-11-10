@@ -1,70 +1,31 @@
 import { Worker } from "bullmq";
 import { connection } from "../../queue";
 import strategy from "./strategy";
-import { connectDb } from "../../lib/db";
-import { Collection, ObjectId } from "mongodb";
-import { Automation } from "../../types/automation";
 
 const worker = new Worker(
   "run-strategy",
   async (job) => {
-    console.log(`Processing job ${job.id}`);
-    const { automation } = job.data;
-    await strategy(job, automation);
-    console.log("Strategy runned!");
+    await strategy(job, job.data.automationId);
   },
   {
     connection,
-    concurrency: 2,
-    limiter: {
-      max: 2,
-      duration: 10_000,
-    },
+    concurrency: 1,
   }
 );
 
-worker.on("completed", async (job, result) => {
-  console.log(`✅ Job ${job.id} finalizado.`);
-  try {
-    const db = await connectDb();
-    const automations = db.collection<Automation>(
-      "automations"
-    ) as Collection<Automation>;
-    const automationId = new ObjectId(String(job.data.automation._id));
-    await automations.updateOne(
-      { _id: automationId },
-      { $set: { lastHeartbeatAt: new Date(), status: "active" } }
-    );
-  } catch (err: any) {
-    console.error(
-      "⚠️ Falha ao atualizar heartbeat/status após conclusão:",
-      err.message
-    );
-  }
+worker.on("active", async (job) => {
+  console.log(`🚀 Job ${job.id} started.`);
+});
+
+
+worker.on("completed", async (job) => {
+  console.log(`✅ Job ${job.id} finished.`);
 });
 
 worker.on("failed", async (job, err) => {
-  console.error(`❌ Job ${job?.id} falhou:`, err.message);
-  try {
-    const db = await connectDb();
-    const automations = db.collection<Automation>(
-      "automations"
-    ) as Collection<Automation>;
-    const automationId = new ObjectId(String(job?.data?.automation?._id));
-    if (automationId) {
-      await automations.updateOne(
-        { _id: automationId },
-        { $set: { lastHeartbeatAt: new Date(), status: "error" } }
-      );
-    }
-  } catch (dbErr: any) {
-    console.error(
-      "⚠️ Falha ao atualizar heartbeat/status após erro:",
-      dbErr.message
-    );
-  }
+  console.error(`❌ Job ${job?.id} failed:`, err.message);
 });
 
 worker.on("error", (err) => {
-  console.error("⚠️ Erro geral no worker:", err);
+  console.error("⚠️ General worker error:", err);
 });

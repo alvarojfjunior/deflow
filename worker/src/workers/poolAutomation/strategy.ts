@@ -1,16 +1,22 @@
-import { Automation } from "../../types/automation";
+import { Db, ObjectId } from "mongodb";
+import { connectDb } from "../../lib/db";
+import { AutomationDoc } from "../../types/database";
 import { Job } from "bullmq";
+import { createHistory } from "../../lib/utils/history";
 
-export default async (job: Job, automation: Automation) => {
+var db: Db;
+var automation: AutomationDoc;
+
+export default async (job: Job, automationId: string) => {
   try {
-    job.log(
-      `[Inside worker] Running strategy for automation ${automation.name}`
-    );
-    const start = Date.now();
-
-    // const db = await connectDb();
-    // const wallets = db.collection<WalletDoc>("wallets");
-    // const wallet = await wallets.findOne({
+    if (!db) db = await connectDb();
+    automation = (await db.collection<AutomationDoc>("automations").findOne({ _id: new ObjectId(automationId) })) as AutomationDoc;
+    if (!automation) {
+      throw new Error("Automation not found");
+    } else if (automation.status !== "active") {
+      return "Automation is not active";
+    }
+    // const wallet = db.collection<WalletDoc>("wallets").findOne({
     //   _id: new ObjectId(String(automation.strategy.params.walletId)),
     // });
     // if (!wallet) {
@@ -31,16 +37,12 @@ export default async (job: Job, automation: Automation) => {
     // const balance = await getTokenBalances(wallet, "solana");
     // logMessage(balance);
 
-    await new Promise(resolve => setTimeout(resolve, 60000)); // 1-minute delay
-
-    const elapsed = Date.now() - start;
-    console.log(`[Inside worker] ${automation.name} concluído em ${elapsed}ms`);
-
-    return true;
+    await new Promise((resolve) => setTimeout(resolve, 10000)); // 1-minute delay
+    await createHistory(db, automation, "empty-run");
   } catch (error) {
+    await createHistory(db, automation, "error", error);
     console.log(
       `Error: ${error instanceof Error ? error.message : String(error)}`
     );
-    return false;
   }
 };
